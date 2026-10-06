@@ -94,6 +94,16 @@ function redirectByRole(role) {
         return true;
     }
 
+    if (normalizedRole === "investor") {
+        window.location.href = "investor-dashboard.html";
+        return true;
+    }
+
+    if (normalizedRole === "agent") {
+        window.location.href = "agent-dashboard.html";
+        return true;
+    }
+
     // -------------------------------------------------
     // EMPLOYER
     // -------------------------------------------------

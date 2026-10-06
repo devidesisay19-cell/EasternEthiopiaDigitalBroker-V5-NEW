@@ -3,6 +3,7 @@ package com.easterneethiopia.digitalbroker
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
@@ -66,8 +67,11 @@ class MainActivity : AppCompatActivity() {
                 builtInZoomControls = false
                 displayZoomControls = false
                 mediaPlaybackRequiresUserGesture = false
-                userAgentString = "$userAgentString EasternEthiopiaDigitalBroker/1.0"
+                userAgentString = "$userAgentString EasternEthiopiaDigitalBroker/6.0"
+                setSupportMultipleWindows(false)
             }
+
+            setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
@@ -126,6 +130,7 @@ class MainActivity : AppCompatActivity() {
                     request: WebResourceRequest?
                 ): WebResourceResponse? {
                     val url = request?.url ?: return null
+                    cachedSupabaseScript(url)?.let { return it }
                     if (url.scheme == "https" && url.host == "appassets.androidplatform.net") {
                         return assetLoader.shouldInterceptRequest(url)
                     }
@@ -160,6 +165,47 @@ class MainActivity : AppCompatActivity() {
                 if (webView.canGoBack()) webView.goBack() else finish()
             }
         })
+    }
+
+
+    /**
+     * The web pages load supabase-js from a pinned CDN URL. Download it once, keep it in app storage
+     * and serve it from disk afterwards: faster start and it also works without internet after the first run.
+     */
+    private fun cachedSupabaseScript(url: Uri): WebResourceResponse? {
+        val full = url.toString()
+        if (!full.startsWith("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@")) return null
+        return try {
+            val file = java.io.File(filesDir, "supabase-js-" + full.hashCode() + ".js")
+            if (!file.exists() || file.length() < 1000L) {
+                val conn = java.net.URL(full).openConnection() as java.net.HttpURLConnection
+                conn.connectTimeout = 8000
+                conn.readTimeout = 15000
+                if (conn.responseCode != 200) {
+                    conn.disconnect()
+                    return null
+                }
+                val tmp = java.io.File(filesDir, file.name + ".tmp")
+                conn.inputStream.use { input -> tmp.outputStream().use { out -> input.copyTo(out) } }
+                conn.disconnect()
+                if (tmp.length() >= 1000L) {
+                    tmp.renameTo(file)
+                } else {
+                    tmp.delete()
+                }
+            }
+            if (!file.exists() || file.length() < 1000L) return null
+            WebResourceResponse(
+                "application/javascript",
+                "UTF-8",
+                200,
+                "OK",
+                mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=31536000"),
+                file.inputStream()
+            )
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun handleUri(uri: Uri): Boolean {

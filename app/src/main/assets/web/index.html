@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+<link rel="preconnect" href="https://lgslntahenhbuzcrkjuo.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
 <meta charset="UTF-8">
 
@@ -18,6 +20,7 @@
 <title>Eastern Ethiopia Digital Broker</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
+<script src="storage-patch.js"></script>
 <script src="supabase.js"></script>
 
 <style>
@@ -1410,28 +1413,6 @@ footer {
 .home-job-card strong{display:block;margin-bottom:10px;}
 .home-job-card p{margin:10px 0;line-height:1.6;}
 @media(max-width:600px){.home-job-date-heading h3{font-size:18px;}.home-jobs-grid{grid-template-columns:1fr;}}
-
-/* ===== V5: city gate, city bar, brokers ===== */
-.eedb-gate{position:fixed;inset:0;z-index:9999;background:var(--background);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
-.eedb-gate.show{display:flex}
-.eedb-gate h2{color:var(--dark);font-size:24px;margin:0 0 6px;text-align:center}
-.eedb-gate p{color:var(--muted);margin:0 0 18px;text-align:center;font-size:14px}
-.eedb-gate-list{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto}
-.eedb-gate-btn{display:flex;justify-content:space-between;align-items:center;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:16px;color:var(--dark);cursor:pointer;box-shadow:var(--shadow);text-align:left}
-.eedb-gate-btn:active{border-color:var(--primary)}
-.eedb-citybar{max-width:1200px;margin:10px auto 0;padding:0 16px;display:flex;align-items:center;gap:8px}
-.eedb-citychip{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--primary);color:var(--primary-dark);border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer}
-.eedb-brokers{max-width:1200px;margin:16px auto 0;padding:0 16px}
-.eedb-brokers h2{font-size:18px;color:var(--dark);margin:0 0 10px}
-.eedb-brokers-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
-.eedb-bcard{flex:0 0 190px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center}
-.eedb-bav{width:56px;height:56px;border-radius:50%;margin:0 auto 8px;background:#ccfbf1;color:var(--primary-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;overflow:hidden}
-.eedb-bav img{width:100%;height:100%;object-fit:cover}
-.eedb-bname{font-weight:600;color:var(--dark);font-size:15px}
-.eedb-bver{color:var(--success);font-size:12px;margin:2px 0 8px}
-.eedb-bbtns{display:flex;gap:6px}
-.eedb-bbtns a{flex:1;text-decoration:none;font-size:13px;padding:8px 4px;border-radius:10px;color:#fff;background:var(--primary)}
-.eedb-bbtns a.wa{background:#15803d}
 </style>
 
 <!-- =========================================================
@@ -1464,15 +1445,11 @@ footer {
     content="EEDB"
 >
 
+<script src="offline-banner.js"></script>
+<script src="city-gate.js"></script>
 </head>
 
 <body>
-<div id="eedbGate" class="eedb-gate">
-  <h2 id="eedbGateTitle">Select your city</h2>
-  <p id="eedbGateSub">We show listings from your city only.</p>
-  <div id="eedbGateList" class="eedb-gate-list"></div>
-</div>
-
 
 
 <!-- =========================================================
@@ -1630,8 +1607,6 @@ footer {
      HERO
 ========================================================= -->
 
-<div class="eedb-citybar"><span class="eedb-citychip" onclick="showCityGate()">&#128205; <b id="eedbCityName">&mdash;</b> &#9662;</span></div>
-
 <section class="hero">
 
     <div class="hero-inner">
@@ -1746,11 +1721,6 @@ footer {
      MAIN
 ========================================================= -->
 
-<section id="brokersSection" class="eedb-brokers" style="display:none">
-  <h2 id="brokersTitle">Brokers</h2>
-  <div id="brokersRow" class="eedb-brokers-row"></div>
-</section>
-
 <main id="propertiesSection">
 
     <div class="section-title">
@@ -1853,8 +1823,13 @@ footer {
 
                 <select
                     id="cityFilter"
-                    onchange="onCityChange()"
+                    onchange="applyFilters()"
                 >
+
+                    <option value="all">
+                        All Cities
+                    </option>
+
                 </select>
 
             </div>
@@ -2479,6 +2454,23 @@ function redirectByRole(role) {
 
         window.location.href =
             "admin-dashboard.html";
+
+        return;
+    }
+
+
+    if (role === "investor") {
+
+        window.location.href =
+            "investor-dashboard.html";
+
+        return;
+    }
+
+    if (role === "agent") {
+
+        window.location.href =
+            "agent-dashboard.html";
 
         return;
     }
@@ -3975,7 +3967,28 @@ function populateCityFilter(
     select.innerHTML =
         "";
 
-    window.__eedbCities = cities;
+
+    const allOption =
+        document.createElement(
+            "option"
+        );
+
+
+    allOption.value =
+        "all";
+
+
+    allOption.textContent =
+        getTranslation(
+            "all"
+        ) +
+        " Cities";
+
+
+    select.appendChild(
+        allOption
+    );
+
 
     cities.forEach(
         function(city) {
@@ -3999,16 +4012,6 @@ function populateCityFilter(
             );
         }
     );
-
-    const saved = getSavedCity();
-    const ok = cities.some(function(c) { return c.id === saved; });
-    window.__eedbCity = ok ? saved : "";
-    if (ok) {
-        select.value = saved;
-    } else {
-        select.selectedIndex = -1;
-        saveCity("");
-    }
 }
 
 
@@ -4124,7 +4127,8 @@ async function loadProperties() {
                     {
                         ascending: false
                     }
-                );
+                )
+                .range(0, 149);
 
 
         if (error) {
@@ -4136,11 +4140,15 @@ async function loadProperties() {
         allProperties =
             data || [];
 
-        if (window.__eedbCity) {
-            applyFilters();
-        } else {
-            renderProperties([]);
-        }
+
+        const cityEl = document.getElementById("cityFilter");
+        const cityNow = cityEl ? cityEl.value : "all";
+
+        renderProperties(
+            cityNow !== "all"
+                ? allProperties.filter(function(p) { return p.city_id === cityNow; })
+                : allProperties
+        );
 
     } catch (error) {
 
@@ -6062,7 +6070,7 @@ function resetFilters() {
             "cityFilter"
         )
         .value =
-        (window.__eedbCity || "");
+        "all";
 
 
     document
@@ -6080,6 +6088,8 @@ function resetFilters() {
         .value =
         "";
 
+
+    if (window.eedbRestoreCity) { window.eedbRestoreCity(); }
 
     applyFilters();
 }
@@ -6347,98 +6357,6 @@ async function safeStep(label, fn) {
     }
 }
 
-
-/* =========================================================
-   V5: CITY GATE + BROKERS
-========================================================= */
-const EEDB_CITY_KEY = "eedb_city_v5";
-function getSavedCity() { try { return localStorage.getItem(EEDB_CITY_KEY) || ""; } catch (e) { return ""; } }
-function saveCity(id) { try { localStorage.setItem(EEDB_CITY_KEY, id || ""); } catch (e) {} }
-function eedbEsc(v) { return String(v == null ? "" : v).replace(/[&<>'"]/g, function(c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
-function eedbPhone(p) {
-    let n = String(p || "").replace(/[^\d+]/g, "");
-    if (n.startsWith("+")) n = n.slice(1);
-    else if (n.startsWith("0")) n = "251" + n.slice(1);
-    return n;
-}
-function eedbCityName(id) {
-    const c = (window.__eedbCities || []).find(function(x) { return x.id === id; });
-    return c ? c.name : "";
-}
-function showCityGate() {
-    const list = document.getElementById("eedbGateList");
-    const cities = window.__eedbCities || [];
-    const lang = getCurrentLanguage();
-    document.getElementById("eedbGateTitle").textContent = lang === "om" ? "Magaalaa kee filadhu" : lang === "am" ? "ከተማዎን ይምረጡ" : "Select your city";
-    document.getElementById("eedbGateSub").textContent = lang === "om" ? "Beeksisa magaalaa keetii qofa agarsiifna." : lang === "am" ? "የከተማዎን ዝርዝሮች ብቻ እናሳያለን።" : "We show listings from your city only.";
-    list.innerHTML = cities.length ? cities.map(function(c) {
-        return '<button class="eedb-gate-btn" onclick="chooseCity(\'' + eedbEsc(c.id) + '\')"><span>&#128205; ' + eedbEsc(c.name) + '</span><span>&rsaquo;</span></button>';
-    }).join("") : '<p>Could not load cities. Check your internet connection and reopen the app.</p>';
-    document.getElementById("eedbGate").classList.add("show");
-}
-function hideCityGate() { document.getElementById("eedbGate").classList.remove("show"); }
-function chooseCity(id) {
-    saveCity(id);
-    window.__eedbCity = id;
-    const sel = document.getElementById("cityFilter");
-    if (sel) sel.value = id;
-    hideCityGate();
-    refreshCityUI();
-    applyFilters();
-}
-function onCityChange() {
-    const sel = document.getElementById("cityFilter");
-    if (!sel || !sel.value) return;
-    saveCity(sel.value);
-    window.__eedbCity = sel.value;
-    refreshCityUI();
-    applyFilters();
-}
-function refreshCityUI() {
-    const el = document.getElementById("eedbCityName");
-    if (el) el.textContent = eedbCityName(window.__eedbCity) || "\u2014";
-    loadBrokers(window.__eedbCity);
-}
-async function loadBrokers(cityId) {
-    const box = document.getElementById("brokersSection");
-    const row = document.getElementById("brokersRow");
-    if (!box || !row) return;
-    box.style.display = "none";
-    if (!cityId || !db) return;
-    try {
-        const { data, error } = await db.from("brokers")
-            .select("id,display_name,phone,whatsapp,photo_url,is_verified")
-            .eq("city_id", cityId).eq("status", "active")
-            .gte("active_until", new Date().toISOString())
-            .order("is_verified", { ascending: false }).limit(100);
-        if (error) throw error;
-        if (!data || !data.length) return;
-        const lang = getCurrentLanguage();
-        document.getElementById("brokersTitle").textContent =
-            (lang === "om" ? "Brokerootni " : lang === "am" ? "ደላሎች - " : "Brokers in ") + eedbCityName(cityId);
-        row.innerHTML = data.map(function(b) {
-            const ini = eedbEsc((b.display_name || "?").split(" ").map(function(w) { return w[0]; }).join("").slice(0, 2).toUpperCase());
-            const av = b.photo_url ? '<img src="' + eedbEsc(b.photo_url) + '" alt="">' : ini;
-            const wa = eedbPhone(b.whatsapp || b.phone);
-            return '<div class="eedb-bcard">' +
-                '<div onclick="location.href=\'broker-profile.html?id=' + encodeURIComponent(b.id) + '\'" style="cursor:pointer">' +
-                '<div class="eedb-bav">' + av + '</div>' +
-                '<div class="eedb-bname">' + eedbEsc(b.display_name) + '</div>' +
-                '<div class="eedb-bver">' + (b.is_verified ? "&#10003; Verified" : "&nbsp;") + '</div></div>' +
-                '<div class="eedb-bbtns">' +
-                (b.phone ? '<a href="tel:' + eedbEsc(b.phone) + '">Call</a>' : "") +
-                (wa ? '<a class="wa" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">WhatsApp</a>' : "") +
-                '</div></div>';
-        }).join("");
-        box.style.display = "";
-    } catch (e) {
-        console.error("BROKERS LOAD ERROR:", e);
-    }
-}
-async function initCityGate() {
-    if (window.__eedbCity) { refreshCityUI(); } else { showCityGate(); }
-}
-
 async function initializeApp() {
 
     /*
@@ -6458,16 +6376,29 @@ async function initializeApp() {
         setupAuthListener();
     });
 
-    await safeStep("checkCurrentUser", function() {
-        return withTimeout(checkCurrentUser(), 8000, "checkCurrentUser");
+    /* Auth check and locations load run at the same time (was one after the other). */
+    await Promise.all([
+        safeStep("checkCurrentUser", function() {
+            return withTimeout(checkCurrentUser(), 8000, "checkCurrentUser");
+        }),
+        safeStep("loadLocations", function() {
+            return withTimeout(loadLocations(), 8000, "loadLocations");
+        })
+    ]);
+
+    await safeStep("cityGate", function() {
+        return window.cityGate ? window.cityGate() : null;
     });
 
-    await safeStep("loadLocations", function() {
-        return withTimeout(loadLocations(), 8000, "loadLocations");
-    });
+    /* Everything below loads only the selected city (properties are filtered right after download). */
+    const startCity = (document.getElementById("cityFilter") || {}).value || "all";
 
-    await safeStep("loadProperties", loadProperties);
-    await safeStep("initCityGate", initCityGate);
+    await Promise.all([
+        safeStep("loadProperties", loadProperties),
+        safeStep("loadHomeJobs", function() { return loadHomeJobs(startCity); }),
+        safeStep("loadHomeMarketplace", function() { return loadHomeMarketplace(startCity); }),
+        safeStep("loadHomeCars", function() { return loadHomeCars(startCity); })
+    ]);
 
     console.log(
         "EASTERN ETHIOPIA GENERAL DIGITAL BROKER INDEX READY"

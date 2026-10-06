@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="preconnect" href="https://lgslntahenhbuzcrkjuo.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0f766e">
@@ -1047,6 +1049,7 @@ button{
 }
 </style>
 
+<script src="offline-banner.js"></script>
 </head>
 
 <body>
@@ -1936,7 +1939,7 @@ Photo upload does not depend on Area.
 </strong>
 
 <small>
-    JPG / PNG / WEBP • max 5MB each • up to 5 photos
+    JPG / PNG / WEBP • max 5MB each • up to 15 photos
 </small>
 
 <label class="photo-btn">
@@ -2940,10 +2943,10 @@ Area / Kebele is optional.
 ========================================================= */
 
 const SUPABASE_URL =
-    "https://ubkfrpkapqnlaiscrxim.supabase.co";
+    "https://lgslntahenhbuzcrkjuo.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable_5EokG_AyxU4BvcMiq1zyqg_B-NIMoeE";
+    "sb_publishable_JWiUFQ4niDgwGCxx78nYRA_OYDUGxh_";
 
 const supabaseClient =
     window.supabase.createClient(
@@ -6744,8 +6747,7 @@ async function startDashboard(){
 
     if(
         !data ||
-        String(data.role || "")
-            .toLowerCase() !== "owner"
+        !["owner","agent"].includes(String(data.role || "").toLowerCase())
     ){
 
         await supabaseClient.auth.signOut();
@@ -8777,8 +8779,8 @@ async function handlePhotos(e){
 
     for(const file of files){
 
-        if(selectedFiles.length >= 5){
-            if(!notified){ toast("Maximum 5 photos allowed.", "warning"); notified = true; }
+        if(selectedFiles.length >= 15){
+            if(!notified){ toast("Maximum 15 photos allowed.", "warning"); notified = true; }
             break;
         }
 

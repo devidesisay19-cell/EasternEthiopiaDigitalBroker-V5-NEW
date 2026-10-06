@@ -16,11 +16,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.easterneethiopia.digitalbroker.v5"
+        applicationId = "com.easterneethiopia.digitalbroker"
         minSdk = 24
         targetSdk = 36
-        versionCode = 51
-        versionName = "5.0.1"
+        versionCode = 60
+        versionName = "6.0.0"
     }
 
     signingConfigs {
@@ -44,8 +44,10 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
 
-            signingConfig =
-                signingConfigs.getByName("release")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig =
+                    signingConfigs.getByName("release")
+            }
 
             proguardFiles(
                 getDefaultProguardFile(
