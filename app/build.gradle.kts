@@ -19,8 +19,8 @@ android {
         applicationId = "com.easterneethiopia.digitalbroker.v5"
         minSdk = 24
         targetSdk = 36
-        versionCode = 50
-        versionName = "5.0.0"
+        versionCode = 51
+        versionName = "5.0.1"
     }
 
     signingConfigs {
