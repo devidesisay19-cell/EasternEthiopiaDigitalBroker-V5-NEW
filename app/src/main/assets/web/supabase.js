@@ -5,10 +5,10 @@
  * different clients.
  */
 const SUPABASE_URL =
-    "https://YOUR-NEW-PROJECT.supabase.co";
+    "https://ubkfrpkapqnlaiscrxim.supabase.co";
 
 const SUPABASE_KEY =
-    "YOUR_NEW_PUBLISHABLE_KEY";
+    "sb_publishable_5EokG_AyxU4BvcMiq1zyqg_B-NIMoeE";
 
 let db = null;
 let supabaseClient = null;

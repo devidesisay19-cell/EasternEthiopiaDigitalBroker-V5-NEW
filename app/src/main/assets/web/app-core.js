@@ -1,7 +1,7 @@
 /* Eastern Ethiopia Digital Broker - shared core helpers */
 const EEDB = (() => {
-  const URL = "https://YOUR-NEW-PROJECT.supabase.co";
-  const KEY = "YOUR_NEW_PUBLISHABLE_KEY";
+  const URL = "https://ubkfrpkapqnlaiscrxim.supabase.co";
+  const KEY = "sb_publishable_5EokG_AyxU4BvcMiq1zyqg_B-NIMoeE";
   const client = window.supabase.createClient(URL, KEY);
   const esc = (v='') => String(v).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const fmtMoney = n => Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2}) + ' ETB';

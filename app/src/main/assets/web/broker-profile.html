@@ -33,8 +33,8 @@
 </div>
 <div class="bar" id="bar" style="display:none"></div>
 <script>
-const SUPABASE_URL="https://YOUR-NEW-PROJECT.supabase.co";
-const SUPABASE_KEY="YOUR_NEW_PUBLISHABLE_KEY";
+const SUPABASE_URL="https://ubkfrpkapqnlaiscrxim.supabase.co";
+const SUPABASE_KEY="sb_publishable_5EokG_AyxU4BvcMiq1zyqg_B-NIMoeE";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const id=new URLSearchParams(location.search).get("id");
 const esc=v=>String(v==null?"":v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
